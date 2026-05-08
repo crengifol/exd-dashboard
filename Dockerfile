@@ -2,15 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy backend requirements
-COPY backend/requirements.txt ./backend/
+# Copy requirements first for better caching
+COPY backend/requirements.txt .
 
 # Install dependencies
-RUN cd backend && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy entire backend
-COPY backend/ ./backend/
+COPY backend/ .
 
 EXPOSE 8000
 
-CMD ["cd backend && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
