@@ -8,8 +8,8 @@ from routes import personas, asignaciones, proyectos, oportunidades, skill_matri
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup if they don't exist
-    Base.metadata.create_all(bind=engine)
+    # Note: Tables are created via alembic migrations in production
+    # or manually via: python -c "from database import Base, engine; Base.metadata.create_all(bind=engine)"
     yield
 
 
