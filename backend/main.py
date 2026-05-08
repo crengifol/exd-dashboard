@@ -49,8 +49,19 @@ def health():
 @app.post("/api/admin/init-db")
 def init_db():
     """Initialize database tables. Call this endpoint once after deployment."""
+    import os
+    from sqlalchemy import create_engine as sa_create_engine
+
     try:
-        Base.metadata.create_all(bind=engine)
+        # Read DATABASE_URL from environment (not from config which may have stale value)
+        db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+        print(f"[DEBUG] Using DATABASE_URL: {db_url[:50]}...")
+
+        # Create a fresh engine with the correct DATABASE_URL
+        temp_engine = sa_create_engine(db_url)
+        Base.metadata.create_all(bind=temp_engine)
+        temp_engine.dispose()
+
         return {"status": "success", "message": "Database tables created successfully!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
