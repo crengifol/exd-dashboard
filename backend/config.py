@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings
 from typing import List
 
 
@@ -8,7 +8,8 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
-    model_config = SettingsConfigDict(env_file=".env")
+    class Config:
+        env_file = ".env"
 
     @property
     def cors_origins_list(self) -> List[str]:
