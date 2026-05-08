@@ -1,17 +1,16 @@
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 from typing import List
-import os
 
 
 class Settings(BaseSettings):
-    # Read from environment variables first, then use defaults
-    DATABASE_URL: str = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
-    ENVIRONMENT: str = os.environ.get("ENVIRONMENT", "development")
-    DEBUG: bool = os.environ.get("DEBUG", "true").lower() == "true"
-    CORS_ORIGINS: str = os.environ.get("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+    DATABASE_URL: str = Field(default="postgresql://localhost/exd_control", env="DATABASE_URL")
+    ENVIRONMENT: str = Field(default="development", env="ENVIRONMENT")
+    DEBUG: bool = Field(default=True, env="DEBUG")
+    CORS_ORIGINS: str = Field(default="http://localhost:5173,http://localhost:3000", env="CORS_ORIGINS")
 
     class Config:
         env_file = ".env"
+        case_sensitive = False
 
     @property
     def cors_origins_list(self) -> List[str]:
