@@ -46,6 +46,16 @@ def health():
     return {"status": "healthy"}
 
 
+@app.post("/api/admin/init-db")
+def init_db():
+    """Initialize database tables. Call this endpoint once after deployment."""
+    try:
+        Base.metadata.create_all(bind=engine)
+        return {"status": "success", "message": "Database tables created successfully!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @app.get("/api/dashboard/summary")
 def dashboard_summary(db=None):
     """Quick stats para el dashboard principal."""
