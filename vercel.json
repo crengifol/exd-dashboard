@@ -1,4 +1,0 @@
-{
-  "buildCommand": "VITE_API_URL=https://exd-dashboard.onrender.com npm run build",
-  "outputDirectory": "dist"
-}
