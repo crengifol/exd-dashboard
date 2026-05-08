@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
+        # In production, allow all origins (will be tightened later with proper env var)
+        if self.ENVIRONMENT == "production":
+            return ["*"]
         return [o.strip() for o in self.CORS_ORIGINS.split(",")]
 
 
