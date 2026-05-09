@@ -86,21 +86,11 @@ def migrate_skills_catalog():
     """
     import os
     import re
+    import traceback
     import unicodedata
+    from typing import Optional
     from sqlalchemy import create_engine as sa_create_engine, inspect
-
-    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
-    temp_engine = sa_create_engine(db_url)
-
-    # ── 1. Ensure table exists ────────────────────────────────────────────────
-    inspector = inspect(temp_engine)
-    if "skills" not in inspector.get_table_names():
-        models.Skill.__table__.create(bind=temp_engine)
-
-    # ── 2. Read existing skills from personas + already-cataloged skills ─────
     from sqlalchemy.orm import sessionmaker
-    Session = sessionmaker(bind=temp_engine)
-    db = Session()
 
     def _slugify(text: str) -> str:
         if not text:
@@ -111,9 +101,8 @@ def migrate_skills_catalog():
         s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
         return s or "skill"
 
-    def _auto_categoria(nombre: str) -> str | None:
+    def _auto_categoria(nombre: str) -> Optional[str]:
         n = nombre.lower()
-        # Order matters: more specific first
         if "research" in n:
             return "Research"
         if any(k in n for k in [" ai ", "ai ", " ai", "machine learning", "ml ", "artificial"]):
@@ -128,11 +117,23 @@ def migrate_skills_catalog():
             return "Diseño"
         return None
 
+    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+    temp_engine = None
+    db = None
+
     try:
-        # Cataloged ya
+        temp_engine = sa_create_engine(db_url)
+
+        # 1. Ensure table exists. Base.metadata.create_all is idempotent (CREATE
+        #    TABLE IF NOT EXISTS), so this is safe to call repeatedly.
+        Base.metadata.create_all(bind=temp_engine, tables=[models.Skill.__table__])
+
+        # 2. Open a session and seed
+        Session = sessionmaker(bind=temp_engine)
+        db = Session()
+
         ya_cat = {s.nombre for s in db.query(models.Skill).all()}
 
-        # Skills declaradas en personas
         personas = db.query(models.Persona).all()
         declaradas = set()
         for p in personas:
@@ -140,7 +141,6 @@ def migrate_skills_catalog():
                 if hab and isinstance(hab, str):
                     declaradas.add(hab.strip())
 
-        # Insertar las que faltan
         nuevas = sorted(declaradas - ya_cat)
         for nombre in nuevas:
             db.add(models.Skill(
@@ -158,11 +158,19 @@ def migrate_skills_catalog():
             "nuevas": nuevas,
         }
     except Exception as e:
-        db.rollback()
-        return {"status": "error", "message": str(e)}
+        if db is not None:
+            db.rollback()
+        return {
+            "status": "error",
+            "message": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        }
     finally:
-        db.close()
-        temp_engine.dispose()
+        if db is not None:
+            db.close()
+        if temp_engine is not None:
+            temp_engine.dispose()
 
 
 @app.post("/api/admin/migrate-proyecto-types")
