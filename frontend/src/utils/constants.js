@@ -18,6 +18,38 @@ export const FASES_LABEL = {
   evolution: 'Evolution',
 }
 
+// Tipo de engagement: proyecto cerrado (fixed scope) vs T&M (capacidad)
+export const TIPO_PROYECTO = ['fixed_scope', 'time_materials']
+
+export const TIPO_LABEL = {
+  fixed_scope:    'Proyecto',
+  time_materials: 'Time & Materials',
+}
+
+export const TIPO_COLOR = {
+  fixed_scope:    'bg-indigo-100 text-indigo-700',
+  time_materials: 'bg-cyan-100 text-cyan-700',
+}
+
+// Estado operativo (aplica a ambos tipos)
+export const ESTADOS_PROYECTO = ['pre_sales', 'active', 'paused', 'completed', 'cancelled']
+
+export const ESTADO_LABEL = {
+  pre_sales:  'Pre-venta',
+  active:     'Activo',
+  paused:     'Pausado',
+  completed:  'Completado',
+  cancelled:  'Cancelado',
+}
+
+export const ESTADO_COLOR = {
+  pre_sales:  'bg-violet-100 text-violet-700',
+  active:     'bg-emerald-100 text-emerald-700',
+  paused:     'bg-amber-100 text-amber-700',
+  completed:  'bg-gray-200 text-gray-700',
+  cancelled:  'bg-red-100 text-red-700',
+}
+
 export const OPORTUNIDAD_STATUS = ['opportunity', 'approved', 'bidding', 'signed', 'executing']
 
 export const OPORTUNIDAD_STATUS_LABEL = {

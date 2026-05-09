@@ -31,6 +31,17 @@ class ProyectoHealth(str, Enum):
     at_risk = "at_risk"
     blocked = "blocked"
 
+class ProyectoTipo(str, Enum):
+    fixed_scope = "fixed_scope"
+    time_materials = "time_materials"
+
+class ProyectoEstado(str, Enum):
+    pre_sales = "pre_sales"
+    active = "active"
+    paused = "paused"
+    completed = "completed"
+    cancelled = "cancelled"
+
 class OportunidadStatus(str, Enum):
     opportunity = "opportunity"
     approved = "approved"
@@ -117,8 +128,10 @@ class ProyectoBase(BaseModel):
     nombre: str
     cliente: str
     descripcion: Optional[str] = None
-    fase: Optional[ProyectoFase] = ProyectoFase.discovery
-    porcentaje_completado: Optional[int] = 0
+    tipo: Optional[ProyectoTipo] = ProyectoTipo.fixed_scope
+    estado: Optional[ProyectoEstado] = ProyectoEstado.active
+    fase: Optional[ProyectoFase] = None
+    porcentaje_completado: Optional[int] = None
     fecha_inicio: Optional[date] = None
     fecha_launch: Optional[date] = None
     stakeholder: Optional[str] = None
@@ -134,6 +147,8 @@ class ProyectoUpdate(BaseModel):
     nombre: Optional[str] = None
     cliente: Optional[str] = None
     descripcion: Optional[str] = None
+    tipo: Optional[ProyectoTipo] = None
+    estado: Optional[ProyectoEstado] = None
     fase: Optional[ProyectoFase] = None
     porcentaje_completado: Optional[int] = None
     fecha_inicio: Optional[date] = None

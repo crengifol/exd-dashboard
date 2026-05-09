@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { proyectosApi, asignacionesApi, personasApi } from '../services/api'
-import { FASES_PROYECTO, FASES_LABEL, HEALTH_COLOR, HEALTH_LABEL, NIVEL_COLOR } from '../utils/constants'
+import {
+  FASES_PROYECTO, FASES_LABEL, HEALTH_COLOR, HEALTH_LABEL, NIVEL_COLOR,
+  TIPO_PROYECTO, TIPO_LABEL, TIPO_COLOR,
+  ESTADOS_PROYECTO, ESTADO_LABEL, ESTADO_COLOR,
+} from '../utils/constants'
 import clsx from 'clsx'
 import Panel from '../components/Panel'
 
@@ -11,8 +15,9 @@ const slugify = s =>
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
 const EMPTY = {
-  nombre: '', cliente: '', descripcion: '', fase: 'discovery',
-  health: 'on_track', porcentaje_completado: 0,
+  nombre: '', cliente: '', descripcion: '',
+  tipo: 'fixed_scope', estado: 'active',
+  fase: 'discovery', health: 'on_track', porcentaje_completado: 0,
   stakeholder: '', next_milestone: '',
   fecha_inicio: '', fecha_launch: '',
 }
@@ -32,6 +37,8 @@ function ProyectoForm({ initial, onClose }) {
     nombre:                initial.nombre ?? '',
     cliente:               initial.cliente ?? '',
     descripcion:           initial.descripcion ?? '',
+    tipo:                  initial.tipo ?? 'fixed_scope',
+    estado:                initial.estado ?? 'active',
     fase:                  initial.fase ?? 'discovery',
     health:                initial.health ?? 'on_track',
     porcentaje_completado: initial.porcentaje_completado ?? 0,
@@ -40,6 +47,8 @@ function ProyectoForm({ initial, onClose }) {
     fecha_inicio:          initial.fecha_inicio ?? '',
     fecha_launch:          initial.fecha_launch ?? '',
   } : { ...EMPTY })
+
+  const isTM = form.tipo === 'time_materials'
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -58,9 +67,11 @@ function ProyectoForm({ initial, onClose }) {
     e.preventDefault()
     const data = {
       ...form,
-      porcentaje_completado: Number(form.porcentaje_completado),
-      fecha_inicio: form.fecha_inicio || null,
-      fecha_launch: form.fecha_launch || null,
+      // T&M no tiene fase, %, ni fecha_launch — se ignoran y se mandan null
+      fase:                  isTM ? null : form.fase,
+      porcentaje_completado: isTM ? null : Number(form.porcentaje_completado),
+      fecha_launch:          isTM ? null : (form.fecha_launch || null),
+      fecha_inicio:          form.fecha_inicio || null,
     }
     if (initial) update.mutate(data)
     else create.mutate({ ...data, id: slugify(form.nombre) })
@@ -78,37 +89,79 @@ function ProyectoForm({ initial, onClose }) {
           <input required className="input" value={form.cliente} onChange={e => set('cliente', e.target.value)} />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+
+      {/* Tipo: radio toggle */}
+      <div>
+        <label className="form-label">Tipo</label>
+        <div className="flex gap-2">
+          {TIPO_PROYECTO.map(t => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => set('tipo', t)}
+              className={clsx(
+                'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all border',
+                form.tipo === t
+                  ? `${TIPO_COLOR[t]} border-transparent ring-2 ring-offset-1 ring-brand-300`
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300',
+              )}
+            >
+              {TIPO_LABEL[t]}
+            </button>
+          ))}
+        </div>
+        {isTM && (
+          <p className="text-xs text-gray-400 mt-1.5">
+            T&M = venta de capacidad (sin fase ni % de avance).
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {!isTM && (
+          <div>
+            <label className="form-label">Fase</label>
+            <select className="input" value={form.fase} onChange={e => set('fase', e.target.value)}>
+              {FASES_PROYECTO.map(f => <option key={f} value={f}>{FASES_LABEL[f]}</option>)}
+            </select>
+          </div>
+        )}
         <div>
-          <label className="form-label">Fase</label>
-          <select className="input" value={form.fase} onChange={e => set('fase', e.target.value)}>
-            {FASES_PROYECTO.map(f => <option key={f} value={f}>{FASES_LABEL[f]}</option>)}
+          <label className="form-label">Estado</label>
+          <select className="input" value={form.estado} onChange={e => set('estado', e.target.value)}>
+            {ESTADOS_PROYECTO.map(s => <option key={s} value={s}>{ESTADO_LABEL[s]}</option>)}
           </select>
         </div>
         <div>
-          <label className="form-label">Estado</label>
+          <label className="form-label">Health</label>
           <select className="input" value={form.health} onChange={e => set('health', e.target.value)}>
             {Object.entries(HEALTH_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
       </div>
-      <div>
-        <label className="form-label">Progreso: {form.porcentaje_completado}%</label>
-        <input type="range" min="0" max="100" step="5"
-          className="w-full accent-brand-500 h-2 rounded-full"
-          value={form.porcentaje_completado} onChange={e => set('porcentaje_completado', e.target.value)} />
-      </div>
+
+      {!isTM && (
+        <div>
+          <label className="form-label">Progreso: {form.porcentaje_completado}%</label>
+          <input type="range" min="0" max="100" step="5"
+            className="w-full accent-brand-500 h-2 rounded-full"
+            value={form.porcentaje_completado} onChange={e => set('porcentaje_completado', e.target.value)} />
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="form-label">Fecha inicio</label>
           <input type="date" className="input" value={form.fecha_inicio}
             onChange={e => set('fecha_inicio', e.target.value)} />
         </div>
-        <div>
-          <label className="form-label">Fecha lanzamiento</label>
-          <input type="date" className="input" value={form.fecha_launch}
-            onChange={e => set('fecha_launch', e.target.value)} />
-        </div>
+        {!isTM && (
+          <div>
+            <label className="form-label">Fecha lanzamiento</label>
+            <input type="date" className="input" value={form.fecha_launch}
+              onChange={e => set('fecha_launch', e.target.value)} />
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -152,22 +205,31 @@ function ProyectoCard({ proyecto, asignados, onEdit }) {
   })
 
   const activos = asignados.filter(a => a.estado === 'active')
+  const isTM = proyecto.tipo === 'time_materials'
 
   return (
     <div className="card hover:-translate-y-0.5 hover:shadow-lg">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <p className="font-bold text-gray-900 text-sm">{proyecto.nombre}</p>
-          <p className="text-xs text-gray-400">{proyecto.cliente}</p>
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <div className="min-w-0">
+          <p className="font-bold text-gray-900 text-sm truncate">{proyecto.nombre}</p>
+          <p className="text-xs text-gray-400 truncate">{proyecto.cliente}</p>
         </div>
-        <span className={clsx('badge', HEALTH_COLOR[proyecto.health])}>
-          {HEALTH_LABEL[proyecto.health]}
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className={clsx('badge', HEALTH_COLOR[proyecto.health])}>
+            {HEALTH_LABEL[proyecto.health]}
+          </span>
+          {proyecto.estado && proyecto.estado !== 'active' && (
+            <span className={clsx('badge', ESTADO_COLOR[proyecto.estado])}>
+              {ESTADO_LABEL[proyecto.estado]}
+            </span>
+          )}
+        </div>
       </div>
 
-      {(proyecto.fecha_inicio || proyecto.fecha_launch) && (
+      {(proyecto.fecha_inicio || (!isTM && proyecto.fecha_launch)) && (
         <p className="text-xs text-gray-400 mb-2 font-medium">
-          📅 {proyecto.fecha_inicio ?? '—'} → {proyecto.fecha_launch ?? '—'}
+          📅 {proyecto.fecha_inicio ?? '—'}
+          {!isTM && <> → {proyecto.fecha_launch ?? '—'}</>}
         </p>
       )}
 
@@ -175,21 +237,23 @@ function ProyectoCard({ proyecto, asignados, onEdit }) {
         <p className="text-xs text-gray-500 mb-2">👤 {proyecto.stakeholder}</p>
       )}
 
-      <div className="mt-2">
-        <div className="flex justify-between text-xs text-gray-400 mb-1.5 font-medium">
-          <span>Progreso</span>
-          <span className="font-bold text-gray-600">{proyecto.porcentaje_completado}%</span>
+      {!isTM && (
+        <div className="mt-2">
+          <div className="flex justify-between text-xs text-gray-400 mb-1.5 font-medium">
+            <span>Progreso</span>
+            <span className="font-bold text-gray-600">{proyecto.porcentaje_completado ?? 0}%</span>
+          </div>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(112,72,232,0.08)' }}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${proyecto.porcentaje_completado ?? 0}%`,
+                background: 'linear-gradient(90deg, #7048e8, #a688fc)',
+              }}
+            />
+          </div>
         </div>
-        <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(112,72,232,0.08)' }}>
-          <div
-            className="h-full rounded-full transition-all"
-            style={{
-              width: `${proyecto.porcentaje_completado}%`,
-              background: 'linear-gradient(90deg, #7048e8, #a688fc)',
-            }}
-          />
-        </div>
-      </div>
+      )}
 
       {activos.length > 0 && (
         <div className="mt-3">
@@ -253,8 +317,12 @@ export default function Proyectos() {
     nivel_seniority: personaMap[a.persona_id]?.nivel_seniority,
   }))
 
+  // Separar por tipo: kanban solo con proyectos fixed_scope, T&M aparte
+  const fixedScope    = proyectos.filter(p => (p.tipo ?? 'fixed_scope') === 'fixed_scope')
+  const timeMaterials = proyectos.filter(p => p.tipo === 'time_materials')
+
   const byFase = FASES_PROYECTO.reduce((acc, fase) => {
-    acc[fase] = proyectos.filter(p => p.fase === fase)
+    acc[fase] = fixedScope.filter(p => p.fase === fase)
     return acc
   }, {})
 
@@ -263,7 +331,10 @@ export default function Proyectos() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Proyectos activos</h2>
-          <p className="text-sm text-gray-400 mt-1 font-medium">{proyectos.length} proyectos</p>
+          <p className="text-sm text-gray-400 mt-1 font-medium">
+            {fixedScope.length} proyecto{fixedScope.length !== 1 ? 's' : ''}
+            {timeMaterials.length > 0 && ` · ${timeMaterials.length} T&M`}
+          </p>
         </div>
         <button onClick={() => setCreating(true)} className="btn-primary">+ Nuevo proyecto</button>
       </div>
@@ -271,26 +342,63 @@ export default function Proyectos() {
       {isLoading ? (
         <p className="text-sm text-gray-400 py-8 text-center">Cargando...</p>
       ) : (
-        <div className="grid grid-cols-5 gap-3 min-w-max">
-          {FASES_PROYECTO.map(fase => (
-            <div key={fase} className="w-72">
-              {/* Gradient phase header */}
-              <div className={clsx(
-                'mb-4 rounded-xl px-4 py-2.5 flex items-center justify-between',
-                'bg-gradient-to-r text-white',
-                FASE_GRADIENT[fase],
-              )}
-                style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.12)' }}
-              >
-                <h3 className="text-xs font-bold uppercase tracking-wider">
-                  {FASES_LABEL[fase]}
-                </h3>
-                <span className="text-xs font-bold bg-white/20 rounded-full w-5 h-5 flex items-center justify-center">
-                  {byFase[fase].length}
-                </span>
+        <>
+          {/* Kanban por fase — solo proyectos fixed_scope */}
+          <div className="grid grid-cols-5 gap-3 min-w-max">
+            {FASES_PROYECTO.map(fase => (
+              <div key={fase} className="w-72">
+                <div className={clsx(
+                  'mb-4 rounded-xl px-4 py-2.5 flex items-center justify-between',
+                  'bg-gradient-to-r text-white',
+                  FASE_GRADIENT[fase],
+                )}
+                  style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.12)' }}
+                >
+                  <h3 className="text-xs font-bold uppercase tracking-wider">
+                    {FASES_LABEL[fase]}
+                  </h3>
+                  <span className="text-xs font-bold bg-white/20 rounded-full w-5 h-5 flex items-center justify-center">
+                    {byFase[fase].length}
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {byFase[fase].map(p => (
+                    <ProyectoCard
+                      key={p.id}
+                      proyecto={p}
+                      asignados={enrichedAsignaciones.filter(a => a.proyecto_id === p.id)}
+                      onEdit={() => setEditing(p)}
+                    />
+                  ))}
+                  {byFase[fase].length === 0 && (
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl h-24 flex items-center justify-center">
+                      <span className="text-xs text-gray-400">Sin proyectos</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="space-y-4">
-                {byFase[fase].map(p => (
+            ))}
+          </div>
+
+          {/* Sección Time & Materials */}
+          {timeMaterials.length > 0 && (
+            <div className="mt-10">
+              <div className="mb-4 flex items-center gap-3">
+                <div className={clsx(
+                  'rounded-xl px-4 py-2.5 inline-flex items-center gap-2',
+                  'bg-gradient-to-r from-cyan-500 to-teal-600 text-white',
+                )}
+                  style={{ boxShadow: '0 3px 12px rgba(0,0,0,0.12)' }}
+                >
+                  <h3 className="text-xs font-bold uppercase tracking-wider">Time &amp; Materials</h3>
+                  <span className="text-xs font-bold bg-white/20 rounded-full w-5 h-5 flex items-center justify-center">
+                    {timeMaterials.length}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400">Asignaciones de capacidad sin alcance cerrado</p>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {timeMaterials.map(p => (
                   <ProyectoCard
                     key={p.id}
                     proyecto={p}
@@ -298,15 +406,10 @@ export default function Proyectos() {
                     onEdit={() => setEditing(p)}
                   />
                 ))}
-                {byFase[fase].length === 0 && (
-                  <div className="border-2 border-dashed border-gray-200 rounded-2xl h-24 flex items-center justify-center">
-                    <span className="text-xs text-gray-400">Sin proyectos</span>
-                  </div>
-                )}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {creating && (

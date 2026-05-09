@@ -67,6 +67,53 @@ def init_db():
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/admin/migrate-proyecto-types")
+def migrate_proyecto_types():
+    """Idempotent migration: add `tipo` and `estado` columns to `proyectos`.
+
+    Adds enum types and columns if missing. Safe to call multiple times.
+    Existing rows default to tipo='fixed_scope', estado='active'.
+    """
+    import os
+    from sqlalchemy import create_engine as sa_create_engine, text
+
+    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+    temp_engine = sa_create_engine(db_url)
+
+    statements = [
+        # Create enum types if they don't exist (PostgreSQL requires this dance)
+        """
+        DO $$ BEGIN
+            CREATE TYPE proyecto_tipo_enum AS ENUM ('fixed_scope', 'time_materials');
+        EXCEPTION WHEN duplicate_object THEN null; END $$;
+        """,
+        """
+        DO $$ BEGIN
+            CREATE TYPE proyecto_estado_enum AS ENUM ('pre_sales', 'active', 'paused', 'completed', 'cancelled');
+        EXCEPTION WHEN duplicate_object THEN null; END $$;
+        """,
+        # Add columns if they don't exist
+        """
+        ALTER TABLE proyectos
+        ADD COLUMN IF NOT EXISTS tipo proyecto_tipo_enum NOT NULL DEFAULT 'fixed_scope';
+        """,
+        """
+        ALTER TABLE proyectos
+        ADD COLUMN IF NOT EXISTS estado proyecto_estado_enum NOT NULL DEFAULT 'active';
+        """,
+    ]
+
+    try:
+        with temp_engine.begin() as conn:
+            for stmt in statements:
+                conn.execute(text(stmt))
+        temp_engine.dispose()
+        return {"status": "success", "message": "Proyecto type/estado columns migrated"}
+    except Exception as e:
+        temp_engine.dispose()
+        return {"status": "error", "message": str(e)}
+
+
 @app.get("/api/dashboard/summary")
 def dashboard_summary(db=None):
     """Quick stats para el dashboard principal."""

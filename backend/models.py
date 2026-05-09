@@ -55,11 +55,22 @@ class Proyecto(Base):
     nombre = Column(String, nullable=False)
     cliente = Column(String(200), nullable=False)
     descripcion = Column(Text)
+    tipo = Column(
+        Enum("fixed_scope", "time_materials", name="proyecto_tipo_enum"),
+        default="fixed_scope",
+        nullable=False,
+    )
+    estado = Column(
+        Enum("pre_sales", "active", "paused", "completed", "cancelled", name="proyecto_estado_enum"),
+        default="active",
+        nullable=False,
+    )
     fase = Column(
         Enum("discovery", "design", "testing", "launch", "evolution", name="proyecto_fase_enum"),
-        default="discovery"
+        default="discovery",
+        nullable=True,
     )
-    porcentaje_completado = Column(Integer, default=0)
+    porcentaje_completado = Column(Integer, default=0, nullable=True)
     fecha_inicio = Column(Date)
     fecha_launch = Column(Date)
     stakeholder = Column(String(200))
