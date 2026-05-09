@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from config import settings
 from database import Base, engine
 from routes import personas, asignaciones, proyectos, oportunidades, skill_matrix, skills
+import models  # noqa: F401  -- needed by /api/admin/* endpoints
 
 
 @asynccontextmanager
