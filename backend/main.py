@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from config import settings
 from database import Base, engine
-from routes import personas, asignaciones, proyectos, oportunidades, skill_matrix
+from routes import personas, asignaciones, proyectos, oportunidades, skill_matrix, skills
 
 
 @asynccontextmanager
@@ -34,6 +34,7 @@ app.include_router(asignaciones.router, prefix="/api")
 app.include_router(proyectos.router, prefix="/api")
 app.include_router(oportunidades.router, prefix="/api")
 app.include_router(skill_matrix.router, prefix="/api")
+app.include_router(skills.router, prefix="/api")
 
 
 @app.get("/")
@@ -65,6 +66,103 @@ def init_db():
         return {"status": "success", "message": "Database tables created successfully!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@app.post("/api/admin/migrate-skills-catalog")
+def migrate_skills_catalog():
+    """
+    Idempotent migration:
+      1. Creates `skills` table if missing.
+      2. Extracts unique skills from existing `personas.habilidades` and seeds them
+         into the catalog with heuristic auto-categorization. Skills already in
+         the catalog are skipped (no overwrite of manual edits).
+      3. Personas rows are not modified — `personas.habilidades` already contains
+         the canonical names.
+
+    Categories used for auto-classification:
+      - Research, Diseño, Sistemas y herramientas, AI, Soft skills
+      - Skills that don't match any heuristic are left with categoria=NULL
+        for the user to classify manually.
+    """
+    import os
+    import re
+    import unicodedata
+    from sqlalchemy import create_engine as sa_create_engine, inspect
+
+    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+    temp_engine = sa_create_engine(db_url)
+
+    # ── 1. Ensure table exists ────────────────────────────────────────────────
+    inspector = inspect(temp_engine)
+    if "skills" not in inspector.get_table_names():
+        models.Skill.__table__.create(bind=temp_engine)
+
+    # ── 2. Read existing skills from personas + already-cataloged skills ─────
+    from sqlalchemy.orm import sessionmaker
+    Session = sessionmaker(bind=temp_engine)
+    db = Session()
+
+    def _slugify(text: str) -> str:
+        if not text:
+            return ""
+        nfkd = unicodedata.normalize("NFKD", text)
+        ascii_only = "".join(c for c in nfkd if not unicodedata.combining(c))
+        s = ascii_only.lower()
+        s = re.sub(r"[^a-z0-9]+", "-", s).strip("-")
+        return s or "skill"
+
+    def _auto_categoria(nombre: str) -> str | None:
+        n = nombre.lower()
+        # Order matters: more specific first
+        if "research" in n:
+            return "Research"
+        if any(k in n for k in [" ai ", "ai ", " ai", "machine learning", "ml ", "artificial"]):
+            return "AI"
+        if n.startswith("ai ") or n == "ai" or "ai-" in n:
+            return "AI"
+        if any(k in n for k in ["facilitation", "communication", "stakeholder", "leadership", "co-design"]):
+            return "Soft skills"
+        if any(k in n for k in ["design system", "figma", "miro", "sketch", "tokens", "framework", "tool"]):
+            return "Sistemas y herramientas"
+        if any(k in n for k in ["design", "ui", "ux", "wireframe", "prototyp", "interaction", "visual", "accessibility", "responsive"]):
+            return "Diseño"
+        return None
+
+    try:
+        # Cataloged ya
+        ya_cat = {s.nombre for s in db.query(models.Skill).all()}
+
+        # Skills declaradas en personas
+        personas = db.query(models.Persona).all()
+        declaradas = set()
+        for p in personas:
+            for hab in (p.habilidades or []):
+                if hab and isinstance(hab, str):
+                    declaradas.add(hab.strip())
+
+        # Insertar las que faltan
+        nuevas = sorted(declaradas - ya_cat)
+        for nombre in nuevas:
+            db.add(models.Skill(
+                id=_slugify(nombre),
+                nombre=nombre,
+                categoria=_auto_categoria(nombre),
+                activa=True,
+            ))
+        db.commit()
+
+        total = db.query(models.Skill).count()
+        return {
+            "status": "success",
+            "message": f"Skills catalog migrated. Added {len(nuevas)} new entries. Total in catalog: {total}.",
+            "nuevas": nuevas,
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
+    finally:
+        db.close()
+        temp_engine.dispose()
 
 
 @app.post("/api/admin/migrate-proyecto-types")

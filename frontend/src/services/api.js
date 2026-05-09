@@ -53,6 +53,15 @@ export const skillMatrixApi = {
   gaps: () => api.get('/skill-matrix/gaps').then(r => r.data),
 }
 
+// ── Skills (catálogo) ────────────────────────────────────────────────────────
+export const skillsApi = {
+  list: () => api.get('/skills/').then(r => r.data),
+  categorias: () => api.get('/skills/categorias').then(r => r.data),
+  create: (data) => api.post('/skills/', data).then(r => r.data),
+  update: (id, data) => api.put(`/skills/${id}`, data).then(r => r.data),
+  delete: (id) => api.delete(`/skills/${id}`),
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export const dashboardApi = {
   summary: () => api.get('/dashboard/summary').then(r => r.data),

@@ -7,6 +7,7 @@ import Oportunidades from './pages/Oportunidades'
 import SkillMatrix from './pages/SkillMatrix'
 import Piramide from './pages/Piramide'
 import Carrera from './pages/Carrera'
+import Skills from './pages/Skills'
 
 const NAV = [
   { to: '/',             label: 'Dashboard',    icon: '📊' },
@@ -15,6 +16,7 @@ const NAV = [
   { to: '/piramide',     label: 'Pirámide',     icon: '🔺' },
   { to: '/carrera',      label: 'Carrera',      icon: '📈' },
   { to: '/skill-matrix', label: 'Skill Matrix', icon: '🗺️' },
+  { to: '/skills',       label: 'Skills',       icon: '🏷️' },
   { to: '/proyectos',    label: 'Proyectos',    icon: '🔄' },
   { to: '/oportunidades',label: 'Pipeline',     icon: '🚀' },
 ]
@@ -104,6 +106,7 @@ export default function App() {
             <Route path="/oportunidades" element={<Oportunidades />} />
             <Route path="/piramide"      element={<Piramide />} />
             <Route path="/carrera"       element={<Carrera />} />
+            <Route path="/skills"        element={<Skills />} />
           </Routes>
         </main>
       </div>

@@ -6,6 +6,19 @@ import uuid
 from database import Base
 
 
+class Skill(Base):
+    """Catálogo central de habilidades. Las personas referencian por `nombre`."""
+    __tablename__ = "skills"
+
+    id = Column(String(100), primary_key=True)        # slug, ej "ux-research"
+    nombre = Column(String(150), nullable=False, unique=True)  # display, ej "UX Research"
+    categoria = Column(String(80), nullable=True)     # ej "Research", "Diseño", null
+    descripcion = Column(Text, nullable=True)
+    activa = Column(Boolean, default=True, nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
 class Persona(Base):
     __tablename__ = "personas"
 

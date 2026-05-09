@@ -5,6 +5,7 @@ import { NIVELES, NIVEL_COLOR } from '../utils/constants'
 import clsx from 'clsx'
 import Panel from '../components/Panel'
 import TagInput from '../components/TagInput'
+import SkillCheckboxes from '../components/SkillCheckboxes'
 
 const slugify = s =>
   s.toLowerCase()
@@ -95,7 +96,7 @@ function PersonaForm({ initial, onClose }) {
       </div>
       <div>
         <label className="form-label">Habilidades</label>
-        <TagInput value={form.habilidades} onChange={v => set('habilidades', v)} placeholder="ej: UX Research" />
+        <SkillCheckboxes value={form.habilidades} onChange={v => set('habilidades', v)} />
       </div>
       <div>
         <label className="form-label">Certificaciones</label>

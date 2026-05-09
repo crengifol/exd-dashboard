@@ -205,6 +205,33 @@ class OportunidadOut(OportunidadBase):
         from_attributes = True
 
 
+# ── Skill Catalog Schemas ────────────────────────────────────────────────────
+
+class SkillBase(BaseModel):
+    nombre: str
+    categoria: Optional[str] = None
+    descripcion: Optional[str] = None
+    activa: Optional[bool] = True
+
+class SkillCreate(SkillBase):
+    id: Optional[str] = None  # auto-slug si no se proporciona
+
+class SkillUpdate(BaseModel):
+    nombre: Optional[str] = None
+    categoria: Optional[str] = None
+    descripcion: Optional[str] = None
+    activa: Optional[bool] = None
+
+class SkillOut(SkillBase):
+    id: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    personas_count: Optional[int] = 0  # cuántas personas la usan
+
+    class Config:
+        from_attributes = True
+
+
 # ── Skill Matrix Schema ──────────────────────────────────────────────────────
 
 class SkillEntry(BaseModel):
