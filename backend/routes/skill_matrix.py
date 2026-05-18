@@ -45,7 +45,15 @@ SIN_CATEGORIA = "— Sin categoría —"
 
 # Orden preferido para las categorías sugeridas. Otras se ordenan alfabético.
 CATEGORIAS_SUGERIDAS_ORDEN = [
-    "Research", "Diseño", "Sistemas y herramientas", "AI", "Soft skills",
+    "Research, Discovery & Insight",
+    "UX/UI, Interaction & Visual Design",
+    "Product Design & Strategy",
+    "Service Design & Transformation",
+    "Design Systems, Accesibility & Quality",
+    "Strategy, Business & Measurement",
+    "Facilitation/Leadership & Stakeholder Management",
+    "Technology, Tools, & AI Enablement",
+    "Professional & Interpersonal Skills",
 ]
 
 

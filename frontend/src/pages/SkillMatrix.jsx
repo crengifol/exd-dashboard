@@ -9,11 +9,15 @@ const SIN_CATEGORIA = '— Sin categoría —'
 const HUERFANAS_TAB = '__huerfanas__'
 
 const CAT_COLOR = {
-  'Research':                  'text-violet-700 bg-violet-50 border-violet-200',
-  'Diseño':                    'text-indigo-700 bg-indigo-50 border-indigo-200',
-  'Sistemas y herramientas':   'text-cyan-700 bg-cyan-50 border-cyan-200',
-  'AI':                        'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-200',
-  'Soft skills':               'text-emerald-700 bg-emerald-50 border-emerald-200',
+  'Research, Discovery & Insight':                            'text-violet-700 bg-violet-50 border-violet-200',
+  'UX/UI, Interaction & Visual Design':                       'text-indigo-700 bg-indigo-50 border-indigo-200',
+  'Product Design & Strategy':                                'text-blue-700 bg-blue-50 border-blue-200',
+  'Service Design & Transformation':                          'text-cyan-700 bg-cyan-50 border-cyan-200',
+  'Design Systems, Accesibility & Quality':                   'text-teal-700 bg-teal-50 border-teal-200',
+  'Strategy, Business & Measurement':                         'text-amber-700 bg-amber-50 border-amber-200',
+  'Facilitation/Leadership & Stakeholder Management':         'text-emerald-700 bg-emerald-50 border-emerald-200',
+  'Technology, Tools, & AI Enablement':                       'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-200',
+  'Professional & Interpersonal Skills':                      'text-pink-700 bg-pink-50 border-pink-200',
 }
 const catColor = c => CAT_COLOR[c] ?? 'text-gray-700 bg-gray-50 border-gray-200'
 

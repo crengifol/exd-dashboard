@@ -5,16 +5,30 @@ import Panel from '../components/Panel'
 import clsx from 'clsx'
 
 // Categorías sugeridas (el usuario puede crear nuevas)
-const CATEGORIAS_SUGERIDAS = ['Research', 'Diseño', 'Sistemas y herramientas', 'AI', 'Soft skills']
+const CATEGORIAS_SUGERIDAS = [
+  'Research, Discovery & Insight',
+  'UX/UI, Interaction & Visual Design',
+  'Product Design & Strategy',
+  'Service Design & Transformation',
+  'Design Systems, Accesibility & Quality',
+  'Strategy, Business & Measurement',
+  'Facilitation/Leadership & Stakeholder Management',
+  'Technology, Tools, & AI Enablement',
+  'Professional & Interpersonal Skills',
+]
 
 const SIN_CATEGORIA = '— Sin categoría —'
 
 const CAT_COLOR = {
-  'Research':                  'bg-violet-100 text-violet-700',
-  'Diseño':                    'bg-indigo-100 text-indigo-700',
-  'Sistemas y herramientas':   'bg-cyan-100 text-cyan-700',
-  'AI':                        'bg-fuchsia-100 text-fuchsia-700',
-  'Soft skills':               'bg-emerald-100 text-emerald-700',
+  'Research, Discovery & Insight':                            'bg-violet-100 text-violet-700',
+  'UX/UI, Interaction & Visual Design':                       'bg-indigo-100 text-indigo-700',
+  'Product Design & Strategy':                                'bg-blue-100 text-blue-700',
+  'Service Design & Transformation':                          'bg-cyan-100 text-cyan-700',
+  'Design Systems, Accesibility & Quality':                   'bg-teal-100 text-teal-700',
+  'Strategy, Business & Measurement':                         'bg-amber-100 text-amber-700',
+  'Facilitation/Leadership & Stakeholder Management':         'bg-emerald-100 text-emerald-700',
+  'Technology, Tools, & AI Enablement':                       'bg-fuchsia-100 text-fuchsia-700',
+  'Professional & Interpersonal Skills':                      'bg-pink-100 text-pink-700',
 }
 const catColor = c => CAT_COLOR[c] ?? 'bg-gray-100 text-gray-600'
 

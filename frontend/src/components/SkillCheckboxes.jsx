@@ -6,11 +6,15 @@ import clsx from 'clsx'
 const SIN_CAT = '— Sin categoría —'
 
 const CAT_COLOR = {
-  'Research':                  'text-violet-700',
-  'Diseño':                    'text-indigo-700',
-  'Sistemas y herramientas':   'text-cyan-700',
-  'AI':                        'text-fuchsia-700',
-  'Soft skills':               'text-emerald-700',
+  'Research, Discovery & Insight':                            'text-violet-700',
+  'UX/UI, Interaction & Visual Design':                       'text-indigo-700',
+  'Product Design & Strategy':                                'text-blue-700',
+  'Service Design & Transformation':                          'text-cyan-700',
+  'Design Systems, Accesibility & Quality':                   'text-teal-700',
+  'Strategy, Business & Measurement':                         'text-amber-700',
+  'Facilitation/Leadership & Stakeholder Management':         'text-emerald-700',
+  'Technology, Tools, & AI Enablement':                       'text-fuchsia-700',
+  'Professional & Interpersonal Skills':                      'text-pink-700',
 }
 const catColor = c => CAT_COLOR[c] ?? 'text-gray-600'
 

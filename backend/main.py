@@ -104,18 +104,35 @@ def migrate_skills_catalog():
 
     def _auto_categoria(nombre: str) -> Optional[str]:
         n = nombre.lower()
-        if "research" in n:
-            return "Research"
-        if any(k in n for k in [" ai ", "ai ", " ai", "machine learning", "ml ", "artificial"]):
-            return "AI"
+        # Research, Discovery & Insight
+        if any(k in n for k in ["research", "discovery", "insight", "user research", "ethnography", "qualitative", "quantitative"]):
+            return "Research, Discovery & Insight"
+        # UX/UI, Interaction & Visual Design
+        if any(k in n for k in ["ux design", "ui design", "interaction", "visual", "wireframe", "prototyp", "responsive"]):
+            return "UX/UI, Interaction & Visual Design"
+        # Product Design & Strategy
+        if any(k in n for k in ["product design", "product strategy", "product management"]):
+            return "Product Design & Strategy"
+        # Service Design & Transformation
+        if any(k in n for k in ["service design", "service blueprint", "customer journey", "experience mapping", "transformation"]):
+            return "Service Design & Transformation"
+        # Design Systems, Accesibility & Quality
+        if any(k in n for k in ["design system", "figma", "component library", "accessibility", "wcag", "inclusive", "quality assurance"]):
+            return "Design Systems, Accesibility & Quality"
+        # Strategy, Business & Measurement
+        if any(k in n for k in ["business strategy", "measurement", "analytics", "metrics", "kpi", "roi", "business model"]):
+            return "Strategy, Business & Measurement"
+        # Facilitation/Leadership & Stakeholder Management
+        if any(k in n for k in ["facilitation", "workshop", "leadership", "mentoring", "stakeholder", "communication", "influence"]):
+            return "Facilitation/Leadership & Stakeholder Management"
+        # Technology, Tools, & AI Enablement
+        if any(k in n for k in [" ai ", "ai ", " ai", "machine learning", "ml ", "artificial", "generative", "chatbot", "tool", "miro", "sketch", "notion", "automation"]):
+            return "Technology, Tools, & AI Enablement"
         if n.startswith("ai ") or n == "ai" or "ai-" in n:
-            return "AI"
-        if any(k in n for k in ["facilitation", "communication", "stakeholder", "leadership", "co-design"]):
-            return "Soft skills"
-        if any(k in n for k in ["design system", "figma", "miro", "sketch", "tokens", "framework", "tool"]):
-            return "Sistemas y herramientas"
-        if any(k in n for k in ["design", "ui", "ux", "wireframe", "prototyp", "interaction", "visual", "accessibility", "responsive"]):
-            return "Diseño"
+            return "Technology, Tools, & AI Enablement"
+        # Professional & Interpersonal Skills
+        if any(k in n for k in ["soft skill", "presentation", "negotiation", "problem solving", "creativity", "critical thinking", "collaboration"]):
+            return "Professional & Interpersonal Skills"
         return None
 
     db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
