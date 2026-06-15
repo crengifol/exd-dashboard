@@ -52,15 +52,15 @@ def health():
 def init_db():
     """Initialize database tables. Call this endpoint once after deployment."""
     import os
-    from sqlalchemy import create_engine as sa_create_engine
+    from database import make_engine
 
     try:
         # Read DATABASE_URL from environment (not from config which may have stale value)
         db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
         print(f"[DEBUG] Using DATABASE_URL: {db_url[:50]}...")
 
-        # Create a fresh engine with the correct DATABASE_URL
-        temp_engine = sa_create_engine(db_url)
+        # Create a fresh engine (normalizes scheme + pool settings for Supabase)
+        temp_engine = make_engine(db_url)
         Base.metadata.create_all(bind=temp_engine)
         temp_engine.dispose()
 
@@ -90,8 +90,9 @@ def migrate_skills_catalog():
     import traceback
     import unicodedata
     from typing import Optional
-    from sqlalchemy import create_engine as sa_create_engine, inspect
+    from sqlalchemy import inspect
     from sqlalchemy.orm import sessionmaker
+    from database import make_engine
 
     def _slugify(text: str) -> str:
         if not text:
@@ -140,7 +141,7 @@ def migrate_skills_catalog():
     db = None
 
     try:
-        temp_engine = sa_create_engine(db_url)
+        temp_engine = make_engine(db_url)
 
         # 1. Ensure table exists. Base.metadata.create_all is idempotent (CREATE
         #    TABLE IF NOT EXISTS), so this is safe to call repeatedly.
@@ -199,10 +200,11 @@ def migrate_proyecto_types():
     Existing rows default to tipo='fixed_scope', estado='active'.
     """
     import os
-    from sqlalchemy import create_engine as sa_create_engine, text
+    from sqlalchemy import text
+    from database import make_engine
 
     db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
-    temp_engine = sa_create_engine(db_url)
+    temp_engine = make_engine(db_url)
 
     statements = [
         # Create enum types if they don't exist (PostgreSQL requires this dance)

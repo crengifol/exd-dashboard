@@ -5,10 +5,12 @@ services:
     plan: free
     dockerfile: ./Dockerfile
     envVars:
+      # La BD ahora vive en Supabase (Postgres gratuito permanente), no en Render.
+      # Pega el "Session pooler" connection string de Supabase en el dashboard de
+      # Render → Environment. Marcado como secreto (sync:false) para no commitear
+      # la contraseña.
       - key: DATABASE_URL
-        fromDatabase:
-          name: exd-control.db
-          property: connectionString
+        sync: false
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
