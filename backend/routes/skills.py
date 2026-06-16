@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List
@@ -61,6 +61,46 @@ def list_categorias(db: Session = Depends(get_db)):
     """Devuelve las categorías existentes (para autocompletar en el form)."""
     rows = db.query(models.Skill.categoria).filter(models.Skill.categoria.isnot(None)).distinct().all()
     return sorted([r[0] for r in rows])
+
+
+# ── Gestión de categorías (operaciones masivas) ──────────────────────────────
+# OJO: estas rutas literales deben ir ANTES de las rutas con `/{skill_id}` para
+# que el router no interprete "categorias" como un skill_id.
+
+@router.put("/categorias")
+def rename_categoria(data: schemas.CategoriaRename, db: Session = Depends(get_db)):
+    """Renombra una categoría en todas sus skills. Si `nuevo` ya existe, fusiona."""
+    actual = (data.actual or "").strip()
+    nuevo = (data.nuevo or "").strip()
+    if not nuevo:
+        raise HTTPException(status_code=400, detail="El nuevo nombre no puede estar vacío")
+    if actual == nuevo:
+        raise HTTPException(status_code=400, detail="El nombre nuevo es igual al actual")
+
+    afectadas = db.query(models.Skill).filter(models.Skill.categoria == actual).all()
+    if not afectadas:
+        raise HTTPException(status_code=404, detail=f"No hay skills en la categoría '{actual}'")
+
+    # ¿`nuevo` ya tenía skills? entonces es una fusión.
+    fusion = db.query(models.Skill).filter(models.Skill.categoria == nuevo).count() > 0
+
+    for s in afectadas:
+        s.categoria = nuevo
+    db.commit()
+    return {"actualizadas": len(afectadas), "categoria": nuevo, "fusionada": fusion}
+
+
+@router.delete("/categorias", status_code=200)
+def delete_categoria(nombre: str = Query(..., description="Categoría a eliminar"), db: Session = Depends(get_db)):
+    """Elimina una categoría: las skills que la tenían quedan sin categoría (null)."""
+    nombre = (nombre or "").strip()
+    afectadas = db.query(models.Skill).filter(models.Skill.categoria == nombre).all()
+    if not afectadas:
+        raise HTTPException(status_code=404, detail=f"No hay skills en la categoría '{nombre}'")
+    for s in afectadas:
+        s.categoria = None
+    db.commit()
+    return {"actualizadas": len(afectadas)}
 
 
 @router.post("/", response_model=schemas.SkillOut, status_code=201)

@@ -251,6 +251,11 @@ class SkillUpdate(BaseModel):
     descripcion: Optional[str] = None
     activa: Optional[bool] = None
 
+class CategoriaRename(BaseModel):
+    """Renombrar una categoría existente. Si `nuevo` ya existe, las skills se fusionan."""
+    actual: str
+    nuevo: str
+
 class SkillOut(SkillBase):
     id: str
     created_at: Optional[datetime] = None

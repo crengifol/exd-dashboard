@@ -62,6 +62,8 @@ export const skillsApi = {
   create: (data) => api.post('/skills/', data).then(r => r.data),
   update: (id, data) => api.put(`/skills/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/skills/${id}`),
+  renameCategoria: (data) => api.put('/skills/categorias', data).then(r => r.data),
+  deleteCategoria: (nombre) => api.delete('/skills/categorias', { params: { nombre } }).then(r => r.data),
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────

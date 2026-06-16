@@ -153,11 +153,116 @@ function SkillForm({ initial, onClose, categoriasExistentes }) {
   )
 }
 
+// ── Gestor de categorías (renombrar / fusionar / eliminar) ───────────────────
+function CategoriaManager({ skills, onClose }) {
+  const qc = useQueryClient()
+  const [editando, setEditando] = useState(null)   // categoría en edición
+  const [valor, setValor]       = useState('')
+  const [borrando, setBorrando] = useState(null)
+
+  // Conteo de skills por categoría (solo categorías reales, no "sin categoría")
+  const cats = useMemo(() => {
+    const counts = {}
+    for (const s of skills) {
+      if (s.categoria) counts[s.categoria] = (counts[s.categoria] ?? 0) + 1
+    }
+    return Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]))
+  }, [skills])
+
+  const refrescar = () => {
+    qc.invalidateQueries({ queryKey: ['skills'] })
+    qc.invalidateQueries({ queryKey: ['skills-categorias'] })
+  }
+
+  const rename = useMutation({
+    mutationFn: ({ actual, nuevo }) => skillsApi.renameCategoria({ actual, nuevo }),
+    onSuccess: () => { refrescar(); setEditando(null); setValor('') },
+  })
+  const remove = useMutation({
+    mutationFn: nombre => skillsApi.deleteCategoria(nombre),
+    onSuccess: () => { refrescar(); setBorrando(null) },
+  })
+
+  const nombresExistentes = cats.map(([c]) => c)
+  const esFusion = editando && valor.trim() && valor.trim() !== editando &&
+    nombresExistentes.includes(valor.trim())
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-gray-500">
+        Renombrar propaga el cambio a todas las skills de la categoría. Si el nombre nuevo
+        ya existe, las categorías se <strong>fusionan</strong>. Eliminar deja esas skills sin categoría.
+      </p>
+
+      {cats.length === 0 ? (
+        <p className="text-sm text-gray-400 py-4 text-center">No hay categorías asignadas todavía.</p>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+          {cats.map(([cat, count]) => (
+            <div key={cat} className="px-4 py-3">
+              {editando === cat ? (
+                <div className="space-y-2">
+                  <input className="input w-full" autoFocus value={valor}
+                    onChange={e => setValor(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && valor.trim()) rename.mutate({ actual: cat, nuevo: valor.trim() }) }} />
+                  {esFusion && (
+                    <p className="text-xs text-amber-600">⚠️ Ya existe «{valor.trim()}» — se fusionarán.</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button className="btn-primary text-xs" disabled={!valor.trim() || rename.isPending}
+                      onClick={() => rename.mutate({ actual: cat, nuevo: valor.trim() })}>
+                      {rename.isPending ? 'Guardando…' : (esFusion ? 'Fusionar' : 'Renombrar')}
+                    </button>
+                    <button className="btn-secondary text-xs"
+                      onClick={() => { setEditando(null); setValor('') }}>Cancelar</button>
+                  </div>
+                </div>
+              ) : borrando === cat ? (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-red-600">
+                    ¿Eliminar «{cat}»? Sus {count} skill{count !== 1 ? 's' : ''} quedarán sin categoría.
+                  </span>
+                  <div className="flex gap-2 shrink-0">
+                    <button className="text-xs text-red-600 font-semibold hover:underline"
+                      disabled={remove.isPending} onClick={() => remove.mutate(cat)}>Sí</button>
+                    <button className="text-xs text-gray-500 hover:underline"
+                      onClick={() => setBorrando(null)}>No</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className={clsx('badge text-xs', catColor(cat))}>{cat}</span>
+                  <span className="text-xs text-gray-400 flex-1">{count} skill{count !== 1 ? 's' : ''}</span>
+                  <button className="text-xs text-brand-600 hover:text-brand-800 font-semibold"
+                    onClick={() => { setEditando(cat); setValor(cat); setBorrando(null) }}>✏️ Renombrar</button>
+                  <button className="text-xs text-red-400 hover:text-red-600"
+                    onClick={() => { setBorrando(cat); setEditando(null) }}>✕</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(rename.error || remove.error) && (
+        <p className="text-xs text-red-500">
+          Error: {(rename.error || remove.error).response?.data?.detail || (rename.error || remove.error).message}
+        </p>
+      )}
+
+      <div className="flex justify-end pt-3 border-t border-gray-100">
+        <button type="button" onClick={onClose} className="btn-secondary">Cerrar</button>
+      </div>
+    </div>
+  )
+}
+
 // ── Página ─────────────────────────────────────────────────────────────────
 export default function Skills() {
   const qc = useQueryClient()
   const [creating, setCreating] = useState(false)
   const [editing, setEditing]   = useState(null)
+  const [managingCats, setManagingCats] = useState(false)
   const [search, setSearch]     = useState('')
   const [filtroCat, setFiltroCat] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(null)
@@ -222,7 +327,10 @@ export default function Skills() {
             {totalSinCat > 0 && ` · ${totalSinCat} sin categoría`}
           </p>
         </div>
-        <button onClick={() => setCreating(true)} className="btn-primary">+ Nueva skill</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setManagingCats(true)} className="btn-secondary">⚙️ Gestionar categorías</button>
+          <button onClick={() => setCreating(true)} className="btn-primary">+ Nueva skill</button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -319,6 +427,11 @@ export default function Skills() {
         <Panel title={`Editar — ${editing.nombre}`} onClose={() => setEditing(null)}>
           <SkillForm initial={editing} onClose={() => setEditing(null)}
             categoriasExistentes={categoriasExistentes} />
+        </Panel>
+      )}
+      {managingCats && (
+        <Panel title="Gestionar categorías" onClose={() => setManagingCats(false)}>
+          <CategoriaManager skills={skills} onClose={() => setManagingCats(false)} />
         </Panel>
       )}
     </div>
