@@ -294,14 +294,16 @@ function PersonaPanel({ persona, onClose, onEdit }) {
 
 // ── Card ─────────────────────────────────────────────────────────────────────
 function PersonaCard({ persona, onClick }) {
+  const skills = persona.habilidades ?? []
   return (
     <button
-      className="card text-left cursor-pointer w-full hover:-translate-y-1 hover:shadow-lg group"
+      className="card text-left cursor-pointer w-full h-full flex flex-col hover:-translate-y-1 hover:shadow-lg group"
       onClick={onClick}
     >
-      <div className="flex items-start gap-3 mb-3">
+      {/* Identidad: avatar + nombre + rol (nombre con espacio propio, sin competir con la categoría) */}
+      <div className="flex items-center gap-3">
         <div className={clsx(
-          'w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-sm font-bold shrink-0',
+          'w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-base font-bold shrink-0',
           avatarGradient(persona.nombre)
         )}
           style={{ boxShadow: '0 3px 10px rgba(112,72,232,0.2)' }}
@@ -309,25 +311,38 @@ function PersonaCard({ persona, onClick }) {
           {persona.nombre.charAt(0)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 text-sm truncate">{persona.nombre}</p>
-          <p className="text-xs text-gray-400 truncate">{persona.rol}</p>
+          <p className="font-bold text-gray-900 text-[15px] leading-snug break-words">{persona.nombre}</p>
+          {persona.rol && <p className="text-xs text-gray-400 truncate mt-0.5">{persona.rol}</p>}
         </div>
-        <span className={clsx('badge shrink-0', NIVEL_COLOR[persona.nivel_seniority])}>
+      </div>
+
+      {/* Categoría: fila propia, claramente legible */}
+      <div className="mt-3">
+        <span className={clsx('badge', NIVEL_COLOR[persona.nivel_seniority] ?? 'bg-gray-100 text-gray-600')}>
           {persona.nivel_seniority}
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {persona.habilidades?.slice(0, 3).map(h => (
-          <span key={h} className="badge bg-brand-50 text-brand-500">{h}</span>
-        ))}
-        {(persona.habilidades?.length ?? 0) > 3 && (
-          <span className="text-xs text-gray-400 font-medium">+{persona.habilidades.length - 3}</span>
-        )}
-      </div>
+      {/* Skills: con etiqueta para escanear rápido */}
+      {skills.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1.5">Skills</p>
+          <div className="flex flex-wrap gap-1.5">
+            {skills.slice(0, 4).map(h => (
+              <span key={h} className="badge bg-brand-50 text-brand-500">{h}</span>
+            ))}
+            {skills.length > 4 && (
+              <span className="badge bg-gray-100 text-gray-500">+{skills.length - 4}</span>
+            )}
+          </div>
+        </div>
+      )}
 
+      {/* Pie: mentoría, anclado abajo para alinear las cards de una fila */}
       {persona.disponible_mentoria && (
-        <p className="text-xs text-emerald-600 font-semibold mt-2.5">✓ Mentoría</p>
+        <p className="text-xs text-emerald-600 font-semibold mt-auto pt-3 flex items-center gap-1">
+          <span aria-hidden>✓</span> Disponible para mentoría
+        </p>
       )}
     </button>
   )
