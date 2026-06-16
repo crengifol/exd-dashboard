@@ -240,6 +240,27 @@ def migrate_proyecto_types():
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/admin/migrate-hitos-log")
+def migrate_hitos_log():
+    """Idempotente: crea la tabla `hitos_log` (y sus enums) si no existe.
+
+    Soporta la trazabilidad de hitos/acciones por proyecto. Seguro de llamar
+    múltiples veces (create_all usa CREATE TABLE IF NOT EXISTS).
+    """
+    import os
+    from database import make_engine
+
+    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+    temp_engine = make_engine(db_url)
+    try:
+        Base.metadata.create_all(bind=temp_engine, tables=[models.HitoLog.__table__])
+        return {"status": "success", "message": "Tabla hitos_log creada/verificada"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    finally:
+        temp_engine.dispose()
+
+
 @app.get("/api/dashboard/summary")
 def dashboard_summary(db=None):
     """Quick stats para el dashboard principal."""

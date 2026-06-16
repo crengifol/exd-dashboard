@@ -98,6 +98,32 @@ class Proyecto(Base):
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
+class HitoLog(Base):
+    """Log histórico de hitos/acciones declarados por proyecto.
+
+    Cada vez que se declara un nuevo `next_milestone` en un proyecto se registra
+    una entrada aquí (registro automático), para mantener la trazabilidad de los
+    hitos y acciones a lo largo del tiempo. El estado permite marcar el avance.
+    """
+    __tablename__ = "hitos_log"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    proyecto_id = Column(String(100), ForeignKey("proyectos.id", ondelete="CASCADE"), nullable=False)
+    descripcion = Column(Text, nullable=False)
+    tipo = Column(
+        Enum("hito", "accion", name="hito_tipo_enum"),
+        default="hito",
+        nullable=False,
+    )
+    estado = Column(
+        Enum("pendiente", "cumplido", name="hito_estado_enum"),
+        default="pendiente",
+        nullable=False,
+    )
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
 class Oportunidad(Base):
     __tablename__ = "oportunidades"
 

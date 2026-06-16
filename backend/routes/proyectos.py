@@ -46,11 +46,56 @@ def update_proyecto(proyecto_id: str, data: schemas.ProyectoUpdate, db: Session 
     p = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id).first()
     if not p:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
-    for field, value in data.model_dump(exclude_unset=True).items():
+
+    fields = data.model_dump(exclude_unset=True)
+
+    # Registro automático: si se declara un próximo hito nuevo (no vacío y
+    # distinto al actual), se guarda una entrada en el log para trazabilidad.
+    nuevo_hito = fields.get("next_milestone")
+    if "next_milestone" in fields and nuevo_hito and nuevo_hito.strip() != (p.next_milestone or "").strip():
+        db.add(models.HitoLog(
+            proyecto_id=p.id,
+            descripcion=nuevo_hito.strip(),
+            tipo="hito",
+            estado="pendiente",
+        ))
+
+    for field, value in fields.items():
         setattr(p, field, value)
     db.commit()
     db.refresh(p)
     return p
+
+
+@router.get("/{proyecto_id}/hitos", response_model=List[schemas.HitoLogOut])
+def list_hitos(proyecto_id: str, db: Session = Depends(get_db)):
+    """Log histórico de hitos/acciones del proyecto, más reciente primero."""
+    p = db.query(models.Proyecto).filter(models.Proyecto.id == proyecto_id).first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    return (
+        db.query(models.HitoLog)
+        .filter(models.HitoLog.proyecto_id == proyecto_id)
+        .order_by(models.HitoLog.created_at.desc())
+        .all()
+    )
+
+
+@router.patch("/{proyecto_id}/hitos/{hito_id}", response_model=schemas.HitoLogOut)
+def update_hito(proyecto_id: str, hito_id: str, data: schemas.HitoUpdate, db: Session = Depends(get_db)):
+    """Gestiona una entrada del log: marcar cumplido/pendiente, reclasificar, editar."""
+    h = (
+        db.query(models.HitoLog)
+        .filter(models.HitoLog.id == hito_id, models.HitoLog.proyecto_id == proyecto_id)
+        .first()
+    )
+    if not h:
+        raise HTTPException(status_code=404, detail="Hito no encontrado")
+    for field, value in data.model_dump(exclude_unset=True).items():
+        setattr(h, field, value)
+    db.commit()
+    db.refresh(h)
+    return h
 
 
 @router.delete("/{proyecto_id}", status_code=204)

@@ -191,10 +191,54 @@ function ProyectoForm({ initial, onClose }) {
   )
 }
 
+// ── Historial de hitos ──────────────────────────────────────────────────────
+function HitoHistorial({ proyectoId }) {
+  const qc = useQueryClient()
+  const { data: hitos = [], isLoading } = useQuery({
+    queryKey: ['hitos', proyectoId],
+    queryFn: () => proyectosApi.hitos(proyectoId),
+  })
+  const toggle = useMutation({
+    mutationFn: ({ hitoId, estado }) => proyectosApi.updateHito(proyectoId, hitoId, { estado }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['hitos', proyectoId] }),
+  })
+
+  if (isLoading) return <p className="text-xs text-gray-400 mt-2">Cargando historial…</p>
+  if (hitos.length === 0) return <p className="text-xs text-gray-400 mt-2">Sin hitos registrados aún.</p>
+
+  return (
+    <ul className="mt-2 space-y-2 border-l-2 border-gray-100 pl-3">
+      {hitos.map(h => {
+        const cumplido = h.estado === 'cumplido'
+        return (
+          <li key={h.id} className="text-xs">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className={clsx('badge text-[10px]', cumplido ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}>
+                {cumplido ? '✓ Cumplido' : '⏳ Pendiente'}
+              </span>
+              {h.tipo === 'accion' && <span className="badge text-[10px] bg-blue-100 text-blue-700">Acción</span>}
+              <span className="text-gray-300">{(h.created_at || '').slice(0, 10)}</span>
+            </div>
+            <p className={clsx('mt-0.5', cumplido ? 'line-through text-gray-400' : 'text-gray-600')}>{h.descripcion}</p>
+            <button
+              onClick={() => toggle.mutate({ hitoId: h.id, estado: cumplido ? 'pendiente' : 'cumplido' })}
+              disabled={toggle.isPending}
+              className="text-brand-500 hover:text-brand-700 mt-0.5 font-medium"
+            >
+              {cumplido ? '↩ Marcar pendiente' : '✓ Marcar cumplido'}
+            </button>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 // ── Card ──────────────────────────────────────────────────────────────────────
 function ProyectoCard({ proyecto, asignados, onEdit }) {
   const qc = useQueryClient()
   const [confirming, setConfirming] = useState(false)
+  const [showHist, setShowHist] = useState(false)
 
   const del = useMutation({
     mutationFn: () => proyectosApi.delete(proyecto.id),
@@ -274,6 +318,14 @@ function ProyectoCard({ proyecto, asignados, onEdit }) {
       {proyecto.next_milestone && (
         <p className="mt-2.5 text-xs text-brand-600 font-semibold">→ {proyecto.next_milestone}</p>
       )}
+
+      <button
+        onClick={() => setShowHist(v => !v)}
+        className="mt-1.5 text-xs text-gray-400 hover:text-brand-600 font-medium"
+      >
+        🕑 {showHist ? 'Ocultar historial' : 'Historial de hitos'}
+      </button>
+      {showHist && <HitoHistorial proyectoId={proyecto.id} />}
 
       <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100/50">
         {confirming ? (

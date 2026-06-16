@@ -205,6 +205,35 @@ class OportunidadOut(OportunidadBase):
         from_attributes = True
 
 
+# ── Hito Log Schemas ─────────────────────────────────────────────────────────
+
+class HitoTipo(str, Enum):
+    hito = "hito"
+    accion = "accion"
+
+class HitoEstado(str, Enum):
+    pendiente = "pendiente"
+    cumplido = "cumplido"
+
+class HitoLogOut(BaseModel):
+    id: UUID
+    proyecto_id: str
+    descripcion: str
+    tipo: HitoTipo
+    estado: HitoEstado
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class HitoUpdate(BaseModel):
+    """Para gestionar entradas ya registradas (marcar cumplido, reclasificar)."""
+    tipo: Optional[HitoTipo] = None
+    estado: Optional[HitoEstado] = None
+    descripcion: Optional[str] = None
+
+
 # ── Skill Catalog Schemas ────────────────────────────────────────────────────
 
 class SkillBase(BaseModel):

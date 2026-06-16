@@ -35,6 +35,8 @@ export const proyectosApi = {
   create: (data) => api.post('/proyectos', data).then(r => r.data),
   update: (id, data) => api.put(`/proyectos/${id}`, data).then(r => r.data),
   delete: (id) => api.delete(`/proyectos/${id}`),
+  hitos: (id) => api.get(`/proyectos/${id}/hitos`).then(r => r.data),
+  updateHito: (id, hitoId, data) => api.patch(`/proyectos/${id}/hitos/${hitoId}`, data).then(r => r.data),
 }
 
 // ── Oportunidades ────────────────────────────────────────────────────────────
