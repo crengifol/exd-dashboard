@@ -82,7 +82,7 @@ def match_personas(oportunidad_id: str, db: Session = Depends(get_db)):
 
     # Filtrar por nivel si se especificó
     if o.nivel_requerido:
-        niveles = ["Junior", "Mid", "Senior", "Lead", "Director"]
+        niveles = ["Junior Designer", "Designer", "Lead Designer", "Expert Designer", "Chief Designer"]
         nivel_min = niveles.index(o.nivel_requerido)
         candidatos = [
             p for p in candidatos

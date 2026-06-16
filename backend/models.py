@@ -28,8 +28,8 @@ class Persona(Base):
     empresa_actual = Column(String)
     area = Column(String)
     nivel_seniority = Column(
-        Enum("Junior", "Mid", "Senior", "Lead", "Director", name="nivel_seniority_enum"),
-        default="Mid"
+        Enum("Junior Designer", "Designer", "Lead Designer", "Expert Designer", "Chief Designer", name="nivel_seniority_enum"),
+        default="Designer"
     )
     anos_experiencia = Column(Integer)
     habilidades = Column(JSON, default=list)
@@ -134,7 +134,7 @@ class Oportunidad(Base):
     fases = Column(JSON)
     vacantes = Column(Integer, default=1)
     nivel_requerido = Column(
-        Enum("Junior", "Mid", "Senior", "Lead", "Director", name="nivel_requerido_enum"),
+        Enum("Junior Designer", "Designer", "Lead Designer", "Expert Designer", "Chief Designer", name="nivel_requerido_enum"),
         nullable=True
     )
     competencias_requeridas = Column(JSON, default=list)

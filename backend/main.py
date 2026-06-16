@@ -240,6 +240,50 @@ def migrate_proyecto_types():
         return {"status": "error", "message": str(e)}
 
 
+@app.post("/api/admin/migrate-niveles-categoria")
+def migrate_niveles_categoria():
+    """Idempotente: renombra los valores de los enums de nivel a las nuevas
+    'Categorías' de diseñador (mapeo por rango). Conserva los datos: ALTER TYPE
+    RENAME VALUE solo cambia la etiqueta del enum, no el OID interno, así que las
+    filas existentes y los defaults siguen apuntando al mismo valor.
+    """
+    import os
+    from sqlalchemy import text
+    from database import make_engine
+
+    # (valor_actual, valor_nuevo) — por rango/posición
+    mapping = [
+        ("Junior", "Junior Designer"),
+        ("Mid", "Designer"),
+        ("Senior", "Lead Designer"),
+        ("Lead", "Expert Designer"),
+        ("Director", "Chief Designer"),
+    ]
+    enums = ["nivel_seniority_enum", "nivel_requerido_enum"]
+
+    db_url = os.environ.get("DATABASE_URL", "postgresql://localhost/exd_control")
+    temp_engine = make_engine(db_url)
+    cambios = []
+    try:
+        with temp_engine.begin() as conn:
+            for enum in enums:
+                labels = set(conn.execute(text(
+                    "SELECT e.enumlabel FROM pg_enum e "
+                    "JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = :n"
+                ), {"n": enum}).scalars().all())
+                for old, new in mapping:
+                    # Solo renombra si el viejo aún existe y el nuevo no (idempotente).
+                    # Valores controlados (lista fija), no hay riesgo de inyección.
+                    if old in labels and new not in labels:
+                        conn.execute(text(f"ALTER TYPE {enum} RENAME VALUE '{old}' TO '{new}'"))
+                        cambios.append(f"{enum}: '{old}' → '{new}'")
+        return {"status": "success", "cambios": cambios, "total": len(cambios)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+    finally:
+        temp_engine.dispose()
+
+
 @app.post("/api/admin/migrate-hitos-log")
 def migrate_hitos_log():
     """Idempotente: crea la tabla `hitos_log` (y sus enums) si no existe.

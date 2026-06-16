@@ -3,14 +3,14 @@ import { personasApi } from '../services/api'
 import { NIVEL_COLOR } from '../utils/constants'
 import clsx from 'clsx'
 
-const NIVELES_ORDER = ['Director', 'Lead', 'Senior', 'Mid', 'Junior']
+const NIVELES_ORDER = ['Chief Designer', 'Expert Designer', 'Lead Designer', 'Designer', 'Junior Designer']
 
 const NIVEL_STYLES = {
-  Director: { bar: 'from-pink-400 to-rose-500',   dot: 'bg-pink-400',   text: 'text-pink-700' },
-  Lead:     { bar: 'from-purple-400 to-violet-500', dot: 'bg-purple-400', text: 'text-purple-700' },
-  Senior:   { bar: 'from-indigo-400 to-blue-500', dot: 'bg-indigo-400', text: 'text-indigo-700' },
-  Mid:      { bar: 'from-blue-400 to-cyan-500',    dot: 'bg-blue-400',   text: 'text-blue-700' },
-  Junior:   { bar: 'from-gray-300 to-gray-400',    dot: 'bg-gray-400',   text: 'text-gray-600' },
+  'Chief Designer':  { bar: 'from-pink-400 to-rose-500',    dot: 'bg-pink-400',   text: 'text-pink-700' },
+  'Expert Designer': { bar: 'from-purple-400 to-violet-500', dot: 'bg-purple-400', text: 'text-purple-700' },
+  'Lead Designer':   { bar: 'from-indigo-400 to-blue-500',  dot: 'bg-indigo-400', text: 'text-indigo-700' },
+  'Designer':        { bar: 'from-blue-400 to-cyan-500',     dot: 'bg-blue-400',   text: 'text-blue-700' },
+  'Junior Designer': { bar: 'from-gray-300 to-gray-400',     dot: 'bg-gray-400',   text: 'text-gray-600' },
 }
 
 export default function Piramide() {
@@ -27,7 +27,7 @@ export default function Piramide() {
   const maxCount = Math.max(...NIVELES_ORDER.map(n => groups[n].length), 1)
 
   const seniorPlus = personas.filter(p =>
-    ['Senior', 'Lead', 'Director'].includes(p.nivel_seniority)
+    ['Lead Designer', 'Expert Designer', 'Chief Designer'].includes(p.nivel_seniority)
   ).length
 
   const disponibles = personas.filter(p => p.disponible_mentoria).length
@@ -37,7 +37,7 @@ export default function Piramide() {
       <div>
         <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Pirámide del Equipo</h2>
         <p className="text-sm text-gray-400 mt-1 font-medium">
-          {personas.length} personas · distribución por seniority
+          {personas.length} personas · distribución por categoría
         </p>
       </div>
 
@@ -103,8 +103,8 @@ export default function Piramide() {
             {/* Ratio bar */}
             <div className="mt-8 pt-5 border-t border-gray-100">
               <div className="flex justify-between text-xs text-gray-400 mb-2 font-semibold">
-                <span>Junior / Mid</span>
-                <span>Senior / Lead / Director</span>
+                <span>Junior / Designer</span>
+                <span>Lead / Expert / Chief</span>
               </div>
               <div className="h-3 rounded-full overflow-hidden flex" style={{ background: 'rgba(112,72,232,0.06)' }}>
                 {NIVELES_ORDER.slice().reverse().map(nivel => {
@@ -159,12 +159,12 @@ export default function Piramide() {
                 boxShadow: '0 4px 20px rgba(112,72,232,0.3)',
               }}
             >
-              <p className="text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wide">Ratio Senior+</p>
+              <p className="text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wide">Ratio Lead+</p>
               <p className="text-4xl font-extrabold tracking-tight">
                 {Math.round(seniorPlus / Math.max(personas.length, 1) * 100)}%
               </p>
               <p className="text-xs text-white/60 mt-1 font-medium">
-                {seniorPlus} personas · Senior, Lead o Director
+                {seniorPlus} personas · Lead, Expert o Chief Designer
               </p>
             </div>
 

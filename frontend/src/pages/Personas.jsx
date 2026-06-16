@@ -13,7 +13,7 @@ const slugify = s =>
     .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
 const EMPTY = {
-  nombre: '', rol: '', nivel_seniority: 'Mid', anos_experiencia: '',
+  nombre: '', rol: '', nivel_seniority: 'Designer', anos_experiencia: '',
   habilidades: [], certificaciones: [], intereses: [],
   disponible_mentoria: false, portfolio_link: '',
 }
@@ -39,7 +39,7 @@ function PersonaForm({ initial, onClose }) {
   const [form, setForm] = useState(initial ? {
     nombre: initial.nombre ?? '',
     rol: initial.rol ?? '',
-    nivel_seniority: initial.nivel_seniority ?? 'Mid',
+    nivel_seniority: initial.nivel_seniority ?? 'Designer',
     anos_experiencia: initial.anos_experiencia ?? '',
     habilidades: initial.habilidades ?? [],
     certificaciones: initial.certificaciones ?? [],
@@ -83,7 +83,7 @@ function PersonaForm({ initial, onClose }) {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="form-label">Seniority</label>
+          <label className="form-label">Categoría</label>
           <select className="input" value={form.nivel_seniority} onChange={e => set('nivel_seniority', e.target.value)}>
             {NIVELES.map(n => <option key={n}>{n}</option>)}
           </select>
@@ -370,7 +370,7 @@ export default function Personas() {
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Buscar por nombre o rol..." className="input max-w-xs" />
         <select value={nivelFilter} onChange={e => setNivelFilter(e.target.value)} className="input w-44">
-          <option value="">Todos los niveles</option>
+          <option value="">Todas las categorías</option>
           {NIVELES.map(n => <option key={n}>{n}</option>)}
         </select>
       </div>

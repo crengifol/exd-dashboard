@@ -8,11 +8,11 @@ from enum import Enum
 # ── Enums ────────────────────────────────────────────────────────────────────
 
 class NivelSeniority(str, Enum):
-    junior = "Junior"
-    mid = "Mid"
-    senior = "Senior"
-    lead = "Lead"
-    director = "Director"
+    junior_designer = "Junior Designer"
+    designer = "Designer"
+    lead_designer = "Lead Designer"
+    expert_designer = "Expert Designer"
+    chief_designer = "Chief Designer"
 
 class AsignacionEstado(str, Enum):
     active = "active"
@@ -57,7 +57,7 @@ class PersonaBase(BaseModel):
     rol: str
     empresa_actual: Optional[str] = None
     area: Optional[str] = None
-    nivel_seniority: Optional[NivelSeniority] = NivelSeniority.mid
+    nivel_seniority: Optional[NivelSeniority] = NivelSeniority.designer
     anos_experiencia: Optional[int] = None
     habilidades: Optional[List[str]] = []
     certificaciones: Optional[List[str]] = []

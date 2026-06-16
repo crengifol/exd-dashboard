@@ -1,4 +1,5 @@
-export const NIVELES = ['Junior', 'Mid', 'Senior', 'Lead', 'Director']
+// "Categoría" del diseñador (antes 'seniority'). Orden ascendente = jerarquía.
+export const NIVELES = ['Junior Designer', 'Designer', 'Lead Designer', 'Expert Designer', 'Chief Designer']
 
 export const COMPETENCIAS = [
   'UX Research',
@@ -73,19 +74,19 @@ export const HEALTH_LABEL = {
 }
 
 export const NIVEL_COLOR = {
-  Junior:   'bg-gray-100 text-gray-600',
-  Mid:      'bg-sky-100 text-sky-700',
-  Senior:   'bg-brand-100 text-brand-600',
-  Lead:     'bg-violet-100 text-violet-700',
-  Director: 'bg-pink-100 text-pink-700',
+  'Junior Designer': 'bg-gray-100 text-gray-600',
+  'Designer':        'bg-sky-100 text-sky-700',
+  'Lead Designer':   'bg-brand-100 text-brand-600',
+  'Expert Designer': 'bg-violet-100 text-violet-700',
+  'Chief Designer':  'bg-pink-100 text-pink-700',
 }
 
 // Heatmap skill: score 0-5 → bg color (escala de brand)
 export const SKILL_COLORS = [
   'bg-gray-100',     // 0 — sin skill
-  'bg-brand-100',    // 1 — Junior
-  'bg-brand-200',    // 2 — Mid
-  'bg-brand-300',    // 3 — Senior
-  'bg-brand-500',    // 4 — Lead
-  'bg-brand-700',    // 5 — Director
+  'bg-brand-100',    // 1 — Junior Designer
+  'bg-brand-200',    // 2 — Designer
+  'bg-brand-300',    // 3 — Lead Designer
+  'bg-brand-500',    // 4 — Expert Designer
+  'bg-brand-700',    // 5 — Chief Designer
 ]

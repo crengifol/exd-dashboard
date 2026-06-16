@@ -40,7 +40,7 @@ import models
 
 router = APIRouter(prefix="/skill-matrix", tags=["skill-matrix"])
 
-NIVELES = ["Junior", "Mid", "Senior", "Lead", "Director"]
+NIVELES = ["Junior Designer", "Designer", "Lead Designer", "Expert Designer", "Chief Designer"]
 SIN_CATEGORIA = "— Sin categoría —"
 
 # Orden preferido para las categorías sugeridas. Otras se ordenan alfabético.

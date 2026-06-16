@@ -675,7 +675,7 @@ export default function Carrera() {
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Buscar persona..." className="input max-w-xs" />
         <select value={nivelFilter} onChange={e => setNivelFilter(e.target.value)} className="input w-40">
-          <option value="">Todos los niveles</option>
+          <option value="">Todas las categorías</option>
           {NIVELES.map(n => <option key={n}>{n}</option>)}
         </select>
       </div>
